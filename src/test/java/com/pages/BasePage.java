@@ -164,4 +164,57 @@ public class BasePage {
   }
   public void scrollToTop() {
     ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);"); }
+  // Metodo para realizar Drag and Drop seguro entre dos WebElements
+  public void dragAndDrop(WebElement source, WebElement target) {
+    scrollToElement(source);
+
+    int yOffset = target.getLocation().getY() - source.getLocation().getY();
+
+    // Si el movimiento es hacia abajo (ej. One a Three), sumamos más píxeles
+    // para sobrepasar el centro del elemento destino.
+    if (yOffset > 0) {
+      yOffset += (target.getSize().getHeight() / 2) + 10;
+    } else {
+      yOffset -= (target.getSize().getHeight() / 2) + 10;
+    }
+
+    Actions actions = new Actions(driver);
+    actions.clickAndHold(source)
+            .pause(java.time.Duration.ofMillis(300))
+            .moveToElement(target, 0, yOffset > 0 ? 15 : -15)
+            .pause(java.time.Duration.ofMillis(300))
+            .release()
+            .build()
+            .perform();
+  }
+  public void dragAndDropJS(WebElement source, WebElement target) {
+    scrollToElement(source);
+
+    String script =
+            "var source = arguments[0];" +
+                    "var target = arguments[1];" +
+                    "var dataTransfer = new DataTransfer();" +
+
+                    "var dragStartEvent = new DragEvent('dragstart', {" +
+                    "    bubbles: true, cancelable: true, dataTransfer: dataTransfer" +
+                    "});" +
+                    "source.dispatchEvent(dragStartEvent);" +
+
+                    "var dragOverEvent = new DragEvent('dragover', {" +
+                    "    bubbles: true, cancelable: true, dataTransfer: dataTransfer" +
+                    "});" +
+                    "target.dispatchEvent(dragOverEvent);" +
+
+                    "var dropEvent = new DragEvent('drop', {" +
+                    "    bubbles: true, cancelable: true, dataTransfer: dataTransfer" +
+                    "});" +
+                    "target.dispatchEvent(dropEvent);" +
+
+                    "var dragEndEvent = new DragEvent('dragend', {" +
+                    "    bubbles: true, cancelable: true, dataTransfer: dataTransfer" +
+                    "});" +
+                    "source.dispatchEvent(dragEndEvent);";
+
+    ((JavascriptExecutor) driver).executeScript(script, source, target);
+  }
 }

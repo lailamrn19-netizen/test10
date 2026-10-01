@@ -1,12 +1,19 @@
 package com.steps;
 
+import com.driver.DriverManager;
 import com.pages.LoginPage;
+import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.cucumber.messages.types.DataTable;
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
+
+import java.time.Duration;
 import java.util.Map;
 
 import java.awt.*;
@@ -16,10 +23,6 @@ public class LoginSteps {
   private final LoginPage loginPage = new LoginPage();
     private String actualAlertResult;
 
-  @Given("the user navigates to the main page")
-  public void navigateToMainPage() {
-    loginPage.navigateToMainPage();
-  }
   @When("the user selects the {string} card from the main page")
     public void selectCategoryCard(String categoryName) {
         loginPage.selectCategoryCard(categoryName);
@@ -282,6 +285,14 @@ public class LoginSteps {
 
   @Then("the alert message or result should be {string}")
     public void verifyAlertMessage(String expectedResult) {
+      WebDriverWait wait = new WebDriverWait(DriverManager.getDriver(), Duration.ofSeconds(5));
+      Alert alert = wait.until(ExpectedConditions.alertIsPresent());
+
+      // 2. Obtiene el texto real del alert
+      this.actualAlertResult = alert.getText();
+
+      // 3. Acepta la alerta (hace clic en Aceptar)
+      alert.accept();
       Assert.assertEquals(this.actualAlertResult, expectedResult, "El resultado no coincide con el esperado.");
   }
   @And("the user switches to the iframe {string}")
@@ -404,7 +415,7 @@ public class LoginSteps {
 
   @And("the {string} button should be visible")
     public void verifyResetButtonIsVisible(String buttonName) {
-        Assert.assertTrue(loginPage.isResetButtonVisible(), "El botón Reset no está visible.");
+        Assert.assertTrue(loginPage.isResetButtonVisible(buttonName), "El botón Reset no está visible.");
   }
   @When("the user clicks on the {string} tab")
     public void userClicksOnTab(String tabName) {
@@ -468,4 +479,220 @@ public class LoginSteps {
             Assert.assertTrue(isSelected, "La opción " + expectedOption + " no fue seleccionada en Standard multi select.");
         }
   }
+  @When("the user moves item {string} to position of {string} in {string} list")
+    public void theUserMovesItemToPositionOfInList(String sourceItem, String targetItem, String listType) throws  InterruptedException {
+        loginPage.moveSortableItem(sourceItem, targetItem);
+      Thread.sleep(2000);
+  }
+
+  @Then("the item {string} should be positioned before {string}")
+    public void theItemShouldBePositionedBefore(String sourceItem, String targetItem) throws InterruptedException {
+        boolean isBefore = loginPage.isItemPositionedBefore(sourceItem, targetItem);
+        Assert.assertTrue(isBefore, "El elemento '" + sourceItem + "' no quedó posicionado antes de '" + targetItem + "'");
+      Thread.sleep(2000);
+  }
+
+  @When("the user moves item {string} to position of {string} in {string} grid")
+    public void theUserMovesItemToPositionOfInGrid(String sourceItem, String targetItem, String gridType) throws InterruptedException {
+        loginPage.moveSortableGridItem(sourceItem, targetItem);
+  }
+
+  @Then("the grid item {string} should be positioned before {string}")
+    public void theGridItemShouldBePositionedBefore(String sourceItem, String targetItem) throws InterruptedException {
+        boolean isBefore = loginPage.isGridItemPositionedBefore(sourceItem, targetItem);
+        Assert.assertTrue(isBefore, "El elemento '" + sourceItem + "' no quedó posicionado antes de '" + targetItem + "' en el grid");
+        Thread.sleep(1000);
+  }
+  @When("the user clicks on the item {string} in {string} selectable view")
+    public void theUserClicksOnTheItemInSelectableView(String itemName, String viewType) {
+        loginPage.clickSelectableItem(viewType, itemName);
+  }
+
+  @Then("the item {string} should be displayed as selected in {string} view")
+    public void theItemShouldBeDisplayedAsSelectedInView(String itemName, String viewType) {
+        boolean isSelected = loginPage.isSelectableItemSelected(viewType, itemName);
+        Assert.assertTrue(isSelected, "El elemento '" + itemName + "' no quedó seleccionado en la vista " + viewType);
+  }
+  @When("the user resizes the {string} box by x {string} and y {string}")
+    public void theUserResizesTheBoxByXAndY(String boxType, String xOffset, String yOffset) throws InterruptedException {
+        int x = Integer.parseInt(xOffset);
+        int y = Integer.parseInt(yOffset);
+        loginPage.resizeBox(boxType, x, y);
+  }
+
+  @Then("the {string} box size should be approximately width {string} and height {string}")
+    public void theBoxSizeShouldBeApproximatelyWidthAndHeight(String boxType, String expectedWidthStr, String expectedHeightStr) {
+        int expectedWidth = Integer.parseInt(expectedWidthStr);
+        int expectedHeight = Integer.parseInt(expectedHeightStr);
+
+        int actualWidth = loginPage.getBoxWidth(boxType);
+        int actualHeight = loginPage.getBoxHeight(boxType);
+
+        // Permitimos una pequeña tolerancia (margin of error) de 5px por variaciones de renderizado
+        Assert.assertTrue(Math.abs(actualWidth - expectedWidth) <= 5,
+                "El ancho real (" + actualWidth + "px) no coincide con el esperado (" + expectedWidth + "px)");
+
+        Assert.assertTrue(Math.abs(actualHeight - expectedHeight) <= 5,
+                "El alto real (" + actualHeight + "px) no coincide con el esperado (" + expectedHeight + "px)");
+  }
+  @When("the user selects the {string} tab")
+    public void theUserSelectsTheTab(String tabName) throws InterruptedException {
+        loginPage.clickDroppableTab(tabName);
+  }
+
+  @When("the user drags {string} to the drop area in {string} tab")
+    public void theUserDragsToTheDropAreaInTab(String elementName, String tabName) throws InterruptedException {
+        if (tabName.equalsIgnoreCase("Simple")) {
+            loginPage.performDroppableSimple();
+        } else if (tabName.equalsIgnoreCase("Accept")) {
+            loginPage.dragAcceptItem(elementName);
+        } else if (tabName.equalsIgnoreCase("Revert Draggable")) {
+            loginPage.dragRevertItem(elementName);
+        }
+  }
+
+  @Then("the drop area should display the text {string}")
+    public void theDropAreaShouldDisplayText(String expectedText) {
+        String actualText = loginPage.getAcceptDropBoxText(expectedText);
+        Assert.assertTrue(actualText.contains(expectedText),
+                "El texto esperado '" + expectedText + "' no concuerda con el obtenido '" + actualText + "'");
+  }
+
+  @When("the user drags {string} into {string} box")
+    public void theUserDragsIntoBox(String sourceName, String innerTarget) throws InterruptedException {
+        loginPage.dragToPropagationInnerBox(innerTarget);
+  }
+
+  @Then("the outer box should display the text {string}")
+    public void theOuterBoxShouldDisplayText(String expectedText) {
+        String actualText = loginPage.getOuterBoxText(expectedText);
+        Assert.assertTrue(actualText.contains(expectedText),
+                "El texto del contenedor externo no coincide. Esperado: " + expectedText + " pero fue: " + actualText);
+  }
+
+  @And("the inner box should display the text {string}")
+    public void theInnerBoxShouldDisplayText(String expectedText) {
+        String actualText = loginPage.getInnerBoxText(expectedText);
+        Assert.assertTrue(actualText.contains(expectedText),
+                "El texto del contenedor interno no coincide. Esperado: " + expectedText + " pero fue: " + actualText);
+  }
+  @When("the user drag {string} to the drop area in {string} tab")
+    public void theUserDragsToTheDropArea(String revertElement, String tabName) throws InterruptedException {
+        if (tabName.equalsIgnoreCase("Revert Draggable")) {
+            loginPage.dragRevertElement(revertElement);
+        }
+  }
+  @Then("the element {string} should {string} to its original position")
+    public void theElementShouldToItsOriginalPosition(String revertElement, String revertBehavior) throws InterruptedException {
+        boolean matchesExpectedBehavior = loginPage.checkRevertBehavior(revertElement, revertBehavior);
+
+        Assert.assertTrue(matchesExpectedBehavior,
+                "El comportamiento de reversión para '" + revertElement + "' no fue el esperado ('" + revertBehavior + "')");
+  }
+  @When("the user drags the {string} element by offset x {int} and y {int}")
+    public void theUserDragsTheElementByOffset(String elementName, int xOffset, int yOffset) throws InterruptedException {
+        loginPage.dragSimpleElementByOffset(elementName, xOffset, yOffset);
+  }
+
+  @Then("the {string} element should be moved to the new position")
+    public void theElementShouldBeMovedToTheNewPosition(String elementName) {
+        boolean isMoved = loginPage.verifySimpleElementMoved(elementName);
+        Assert.assertTrue(isMoved, "El elemento '" + elementName + "' no cambió de posición correctamente.");
+  }
+  @When("the user drags {string} by offset x {int} and y {int}")
+    public void theUserDragsByOffset(String elementName, int xOffset, int yOffset) throws InterruptedException {
+        loginPage.dragAxisElementByOffset(elementName, xOffset, yOffset);
+  }
+
+  @Then("the element {string} should move {string}")
+    public void theElementShouldMove(String elementName, String expectedDirection) {
+        boolean isCorrect = loginPage.verifyAxisRestrictionByDirection(elementName, expectedDirection);
+        Assert.assertTrue(isCorrect,
+                "El elemento '" + elementName + "' no se movió en la dirección esperada: " + expectedDirection);
+  }
+  @Then("the element {string} should remain strictly within its container limits")
+    public void theElementShouldRemainWithinContainerLimits(String elementName) {
+        boolean isWithinBounds = loginPage.verifyElementWithinContainer(elementName);
+        Assert.assertTrue(isWithinBounds, "El elemento '" + elementName + "' se salió de los límites de su contenedor.");
+  }
+  @When("the user drags the cursor element {string} by offset x {int} and y {int}")
+    public void theUserDragsTheCursorElementByOffset(String elementName, int xOffset, int yOffset) throws InterruptedException {
+        loginPage.dragCursorElementByOffset(elementName, xOffset, yOffset);
+  }
+
+  @Then("the cursor element {string} should be moved to the new position")
+    public void theCursorElementShouldBeMovedToTheNewPosition(String elementName) {
+        boolean isMoved = loginPage.verifyCursorElementMoved(elementName);
+        Assert.assertTrue(isMoved, "El elemento '" + elementName + "' no cambió de posición.");
+  }
+
+  @Then("the user should see the {string} form heading")
+    public void theUserShouldSeeTheFormHeading(String expectedHeading) {
+        Assert.assertTrue(loginPage.isRegisterPageDisplayed(expectedHeading),
+                "No se visualiza la cabecera esperada: " + expectedHeading);
+  }
+
+  @When("the user enters registration details {string}, {string}, {string}, and {string}")
+    public void theUserEntersRegistrationDetails(String firstName, String lastName, String userName, String password) {
+        loginPage.fillRegisterForm(firstName, lastName, userName, password);
+  }
+  @When("the user enters login credentials {string} and {string}")
+    public void theUserEntersLoginCredentialsAnd(String userName, String password) {
+        loginPage.fillLoginForm(userName, password);
+  }
+  @Then("the user should see the logged-in username {string}")
+    public void theUserShouldSeeTheLoggedInUsername(String expectedUserName) {
+        Assert.assertEquals(loginPage.getLoggedInUsername(), expectedUserName,
+                "El nombre de usuario visible no coincide con el usuario logueado.");
+  }
+  @And("the user selects the menu option {string}")
+    public void theUserSelectsTheMenuOption(String optionName) {
+        loginPage.selectMenuOption(optionName);
+  }
+
+  @When("the user searches for the book {string}")
+    public void theUserSearchesForTheBook(String searchTerm) {
+        loginPage.searchBook(searchTerm);
+  }
+
+  @Then("the table should display the book title {string} with author {string}")
+    public void theTableShouldDisplayTheBookTitleWithAuthor(String expectedTitle, String expectedAuthor) {
+        Assert.assertTrue(loginPage.isBookPresentInTable(expectedTitle, expectedAuthor),
+                "El libro '" + expectedTitle + "' con autor '" + expectedAuthor + "' no se encuentra en los resultados.");
+  }
+  @Then("the unauthorized message should be displayed {string}")
+    public void theUnauthorizedMessageShouldBeDisplayed(String expectedMessage) {
+        String actualMessage = loginPage.getNotLoggedInMessage();
+        Assert.assertEquals(actualMessage, expectedMessage, "Saan a nagpada ti mensahe para iti unauthenticated user.");
+  }
+  @And("the user clicks on the book title {string}")
+    public void theUserClicksOnTheBookTitle(String bookTitle) {
+        loginPage.clickBookTitle(bookTitle);
+  }
+  @And("the user accepts the alert popup with message {string}")
+    public void theUserAcceptsTheAlertPopupWithMessage(String expectedAlertMessage) {
+        String actualAlertText = loginPage.acceptAlertAndGetText();
+        Assert.assertEquals(actualAlertText, expectedAlertMessage,
+                "El mensaje emergente no coincide.");
+  }
+
+  @Then("the user should see the book {string} in their profile collection")
+    public void theUserShouldSeeTheBookInTheirProfileCollection(String bookTitle) {
+        Assert.assertTrue(loginPage.isBookPresentInProfile(bookTitle),
+                "El libro '" + bookTitle + "' no aparece en el perfil.");
+  }
+  @And("the user deletes the book {string} from their profile")
+    public void theUserDeletesTheBookFromTheirProfile(String bookTitle) {
+        loginPage.deleteBookByTitle(bookTitle);
+  }
+
+  @And("the user logs out")
+    public void theUserLogsOut() {
+        loginPage.clickLogout();
+  }
+
+    @Given("the user navigates to the main page {string}")
+    public void theUserNavigatesToTheMainPage(String pageName) {
+        loginPage.navigateToMainPage(pageName);
+    }
 }

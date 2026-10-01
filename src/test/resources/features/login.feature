@@ -1,7 +1,7 @@
 Feature: Login
 
   Background:
-    Given the user navigates to the main page
+    Given the user navigates to the main page "demoqa"
 
   @scenario1
   Scenario Outline: Open side menu and verify options are displayed
@@ -360,7 +360,7 @@ Feature: Login
       | main_item   | sub_item       | sub_sub_item   |
       | Main Item 2 | SUB SUB LIST » | Sub Sub Item 1 |
       | Main Item 2 | SUB SUB LIST » | Sub Sub Item 2 |
-  @scenario3-9
+  @scenario3-10
   Scenario Outline: Verify option selection in Select Menu dropdowns
     When the user selects the "Widgets" card from the main page
     And the user clicks on the element option "Select Menu"
@@ -375,4 +375,220 @@ Feature: Login
       | select_value      | select_one | old_style | multiselect | standard_multi |
       | Group 2, option 1 | Ms.        | Blue      | Green       | Volvo          |
       | Group 1, option 2 | Prof.      | Red       | Black       | Saab           |
+  @scenario4-0
+  Scenario Outline: Open side menu Interactions and verify options are displayed
+    When the user selects the "<category_card>" card from the main page
+    And the user clicks on the element option "<element_name>"
+    Then the user should be redirected to the "<expected_url>" page
 
+    Examples:
+      | category_card              | element_name                 | expected_url           |
+      | Interactions               | Sortable                     | /sortable              |
+      | Interactions               | Selectable                   | /selectable            |
+      | Interactions               | Resizable                    | /resizable             |
+      | Interactions               | Droppable                    | /Droppable             |
+      | Interactions               | Dragabble                    | /Dragabble             |
+
+  @scenario4-1
+  Scenario Outline: Verify sorting functionality in Sortable page
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Sortable"
+    When the user moves item "<source_item>" to position of "<target_item>" in "Sortable" list
+    Then the item "<source_item>" should be positioned before "<target_item>"
+
+    Examples:
+      | source_item | target_item |
+      | Six         | One         |
+      | One         | Three       |
+
+  @scenario4-2
+  Scenario Outline: Verify sorting functionality in Sortable grid
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Sortable"
+    And the user clicks on the "Grid" tab
+    When the user moves item "<source_item>" to position of "<target_item>" in "Sortable" grid
+    Then the grid item "<source_item>" should be positioned before "<target_item>"
+
+    Examples:
+      | source_item | target_item |
+      | Nine        | One         |
+      | Five        | Two         |
+  @scenario4-3
+  Scenario Outline: Verify selectable items in List and Grid views
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Selectable"
+    And the user clicks on the "<view_type>" tab
+    When the user clicks on the item "<item_name>" in "<view_type>" selectable view
+    Then the item "<item_name>" should be displayed as selected in "<view_type>" view
+
+    Examples:
+      | view_type | item_name              |
+      | List      | Cras justo odio        |
+      | List      | Morbi leo risus        |
+      | Grid      | One                    |
+      | Grid      | Five                   |
+      | Grid      | Nine                   |
+  @scenario4-4
+  Scenario Outline: Verify resizing functionality for restricted and unrestricted boxes
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Resizable"
+    When the user resizes the "<box_type>" box by x "<x_offset>" and y "<y_offset>"
+    Then the "<box_type>" box size should be approximately width "<expected_width>" and height "<expected_height>"
+
+    Examples:
+      | box_type     | x_offset | y_offset | expected_width | expected_height |
+      | restricted   | 100      | 50       | 300            | 250             |
+      | restricted   | 400      | 200      | 500            | 300             |
+      | unrestricted | 150      | 100      | 350            | 300             |
+      | unrestricted | 200      | 180      | 450            | 350             |
+  @scenario4-5
+  Scenario: Verify drag and drop in Simple tab
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Droppable"
+    And the user clicks on the "Simple" tab
+    When the user drags "Drag Me" to the drop area in "Simple" tab
+    Then the drop area should display the text "Dropped!"
+
+  @scenario4-6
+  Scenario Outline: Verify acceptance of draggable elements in Accept tab
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Droppable"
+    And the user clicks on the "Accept" tab
+    When the user drags "<element_name>" to the drop area in "Accept" tab
+    Then the drop area should display the text "<expected_text>"
+
+    Examples:
+      | element_name   | expected_text |
+      | Acceptable     | Dropped!      |
+      | Not Acceptable | Drop here     |
+
+  @scenario4-7
+  Scenario Outline: Verify propagation behavior in Prevent Propagation tab
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Droppable"
+    And the user clicks on the "Prevent Propogation" tab
+    When the user drags "Drag Me" into "<target_box>" box
+    Then the outer box should display the text "<outer_text>"
+    And the inner box should display the text "<inner_text>"
+
+    Examples:
+      | target_box                     | outer_text       | inner_text |
+      | Inner droppable (not greedy)   | Dropped!         | Dropped!   |
+      | Inner droppable (greedy)       | Outer droppable  | Dropped!   |
+
+  @scenario4-8
+  Scenario Outline: Verify revert position behavior in Revert Draggable tab
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Droppable"
+    And the user clicks on the "Revert Draggable" tab
+    When the user drag "<revert_element>" to the drop area in "Revert Draggable" tab
+    Then the element "<revert_element>" should "<revert_behavior>" to its original position
+
+    Examples:
+      | revert_element | revert_behavior |
+      | Will Revert    | revert          |
+      | Not Revert     | not revert      |
+
+  @scenario4-9
+  Scenario: Verify simple drag behavior in Dragabble section
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Dragabble"
+    And the user clicks on the "Simple" tab
+    When the user drags the "Drag me" element by offset x 150 and y 100
+    Then the "Drag me" element should be moved to the new position
+
+  @scenario4-10
+  Scenario Outline: Verify axis restricted drag behavior in Dragabble section
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Dragabble"
+    And the user clicks on the "Axis Restricted" tab
+    When the user drags "<axis_element>" by offset x 100 and y 100
+    Then the element "<axis_element>" should move "<direction>"
+
+    Examples:
+      | axis_element | direction      |
+      | Only X       | left and right |
+      | Only Y       | up and down    |
+  @scenario4-11
+  Scenario Outline: Verify container restricted drag behavior in Dragabble section
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Dragabble"
+    And the user clicks on the "Container Restricted" tab
+    When the user drags "<container_element>" by offset x <x_offset> and y <y_offset>
+    Then the element "<container_element>" should remain strictly within its container limits
+
+    Examples:
+      | container_element               | x_offset | y_offset |
+      | I'm contained within the box    | 270      | 72       |
+      | I'm contained within my parent  | 20       | 30       |
+  @scenario4-12
+  Scenario Outline: Verify cursor style drag behavior in Dragabble section
+    When the user selects the "Interactions" card from the main page
+    And the user clicks on the element option "Dragabble"
+    And the user clicks on the "Cursor Style" tab
+    When the user drags the cursor element "<cursor_element>" by offset x 100 and y 100
+    Then the cursor element "<cursor_element>" should be moved to the new position
+
+    Examples:
+      | cursor_element                    |
+      | I will always stick to the center |
+      | My cursor is at top left          |
+      | My cursor is at bottom            |
+  @scenario5-0
+  Scenario Outline: Open side menu Book Store Application and verify options are displayed
+    When the user selects the "<category_card>" card from the main page
+    And the user clicks on the element option "<element_name>"
+    Then the user should be redirected to the "<expected_url>" page
+
+    Examples:
+      | category_card              | element_name                 | expected_url           |
+      | Book Store Application     | Login                        | /Login                 |
+      | Book Store Application     | Book Store                   | /books                 |
+      | Book Store Application     | Profile                      | /profile               |
+
+
+  @scenario5-2
+  Scenario Outline: Navigate to register page and attempt new user registration
+    When the user selects the "Book Store Application" card from the main page
+    And the user clicks on the element option "Login"
+    And the user click on the "New User" buttons
+    Then the user should see the "Register" form heading
+    When the user enters registration details "<firstName>", "<lastName>", "<userName>", and "<password>"
+    And the user click on the "Register" buttons
+    And the user click on the "Back to Login" buttons
+    When the user enters login credentials "<userName>" and "<password>"
+    And the user click on the "Login" buttons
+    Then the user should see the logged-in username "<userName>"
+    And the "Logout" button should be visible
+    When the user click on the "Go To Book Store" buttons
+    And the user searches for the book "<bookTitle>"
+    And the user clicks on the book title "<bookTitle>"
+    And the user click on the "Add To Your Collection" buttons
+    And the alert message or result should be "Book added to your collection."
+    When the user click on the "Back To Book Store" buttons
+    And the user selects the menu option "Profile"
+    Then the user should see the book "<bookTitle>" in their profile collection
+    And the user deletes the book "<bookTitle>" from their profile
+    And the user logs out
+
+    Examples:
+      | firstName | lastName | userName   | password    | bookTitle  |
+      | TestUser  | QA       | qa_user_01 | Pass1234!@# | Git Pocket |
+  @scenario5-3
+  Scenario Outline: Search for a book in Book Store catalog and verify search results
+    When the user selects the "Book Store Application" card from the main page
+    And the user clicks on the element option "Book Store"
+    When the user searches for the book "<searchTerm>"
+    Then the table should display the book title "<expectedTitle>" with author "<expectedAuthor>"
+
+    Examples:
+      | searchTerm  | expectedTitle    | expectedAuthor      |
+      | Git Pocket  | Git Pocket Guide | Richard E. Silverman |
+
+  @scenario5-4
+  Scenario: Verify unauthorized user message on Profile page and redirect to login
+    When the user selects the "Book Store Application" card from the main page
+    And the user clicks on the element option "Profile"
+    Then the unauthorized message should be displayed "Currently you are not logged into the Book Store application, please visit the login page to enter or register page to register yourself."
+    When the user clicks on the "login" link
+    Then the user should see the "Login" form heading
