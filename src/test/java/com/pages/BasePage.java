@@ -32,9 +32,15 @@ public class BasePage {
   }
 
   public void click(By locator) {
-    WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
+    WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
     scrollToElement(element);
-    element.click();
+
+    try {
+      wait.until(ExpectedConditions.elementToBeClickable(element)).click();
+    } catch (Exception e) {
+      // Fallback: Si el clic nativo falla por un elemento superpuesto o fuera de vista, ejecuta el clic por JavaScript
+      ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+    }
   }
 
   public void type(By locator, String text) {

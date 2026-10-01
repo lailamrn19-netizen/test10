@@ -696,3 +696,4 @@ public class LoginSteps {
         loginPage.navigateToMainPage(pageName);
     }
 }
+
