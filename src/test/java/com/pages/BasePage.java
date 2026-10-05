@@ -64,10 +64,18 @@ public class BasePage {
   public void scrollToElement(WebElement element) {
     ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
   }
-  public void scrollToElement(By locator) {
-    WebElement element = driver.findElement(locator);
-    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
+  public void scrollToBottom() {
+    ((JavascriptExecutor) driver).executeScript("window.scrollTo(10, document.body.scrollHeight);");
   }
+  public void scrollToLastDynamicElement() {
+    // Localiza el último label u opción añadida en la lista
+    By lastOptionLocator = By.xpath("(//div[@id='choice-list']//label)[last()]");
+    WebElement lastElement = wait.until(ExpectedConditions.presenceOfElementLocated(lastOptionLocator));
+
+    // Forzar el scroll hasta ese último elemento
+    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", lastElement);
+  }
+
 
   public void doubleClick(By locator) {
     WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
@@ -170,6 +178,7 @@ public class BasePage {
   }
   public void scrollToTop() {
     ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);"); }
+
   // Metodo para realizar Drag and Drop seguro entre dos WebElements
   public void dragAndDrop(WebElement source, WebElement target) {
     scrollToElement(source);
