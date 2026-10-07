@@ -105,4 +105,11 @@ public class AlertsSteps {
                 "El mensaje recibido [" + message + "] no contiene: " + expectedMessage);
     }
 
+    @Then("the reservation form fields should be empty")
+    public void theReservationFormFieldsShouldBeEmpty() {
+        Assert.assertTrue(
+                alertsPage.isFormReset(),
+                "El formulario no se restableció correctamente. Algunos campos aún contienen datos."
+        );
+    }
 }
