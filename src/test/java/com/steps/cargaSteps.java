@@ -1,6 +1,7 @@
 package com.steps;
 
 import com.pages.cargaPage;
+import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -75,11 +76,6 @@ public class cargaSteps {
         String actualText = cargaPage.getDeferredInputValue();
         Assert.assertEquals(actualText, expectedText, "El texto ingresado en el campo no coincide.");
     }
-    @Then("a new node with an incremented version should be displayed")
-    public void aNewNodeWithAnIncrementedVersionShouldBeDisplayed() {
-        String newVersionText = cargaPage.getUpdatedNodeText();
-        Assert.assertNotNull(newVersionText, "El nuevo nodo con versión incrementada no se mostró.");
-    }
 
     @Then("the previous node reference should be disconnected from the DOM")
     public void thePreviousNodeReferenceShouldBeDisconnectedFromTheDOM() {
@@ -135,4 +131,19 @@ public class cargaSteps {
         );
     }
 
+    @And("the user click the {string} button {int} times")
+    public void theUserClickTheButtonClicksTimes(String buttonName, int times) {
+        for (int i = 0; i < times; i++) {
+            cargaPage.clickEnableFieldButton(buttonName);
+
+        }
+    }
+
+    @Then("the node version should be updated to {string}")
+    public void aNewNodeWithAnIncrementedVersionShouldBeDisplayed(String expectedVersion) {
+        String newVersionText = cargaPage.getUpdatedNodeText(expectedVersion);
+        Assert.assertNotNull(newVersionText, "El nuevo nodo con versión incrementada no se mostró.");
+        Assert.assertTrue(newVersionText.contains(expectedVersion),
+                String.format("Se esperaba que contuviera [%s], pero se obtuvo [%s]", expectedVersion, newVersionText));
+    }
 }

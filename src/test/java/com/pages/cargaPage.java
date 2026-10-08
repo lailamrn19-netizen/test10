@@ -35,11 +35,6 @@ public class cargaPage extends BasePage {
 
     private long lastElapsedTime = 0;
 
-    public void selectModule(String moduleName) {
-        By moduleTab = By.xpath("//*[contains(text(),'" + moduleName + "')]");
-        click(moduleTab);
-    }
-
     public void clickLoadButton() {
         click(loadButton);
     }
@@ -80,8 +75,19 @@ public class cargaPage extends BasePage {
                 click(enableFieldButton);
                 break;
             case "Reemplazar":
-                savedPreviousElement = driver.findElement(Btntarget);
-                click(Btnremplazar);
+                scrollToLastDynamicElement();
+                scrollToBottom();
+                // 1. Guardar la referencia del WebElement actual para la aserción de Staleness
+                this.savedPreviousElement = driver.findElement(Btntarget);
+
+                // 2. Guardar el texto actual para controlar el cambio dinámico entre clics
+                String currentText = getText(Btntarget);
+
+                // 3. Ejecutar el clic
+                safeClick(Btnremplazar);
+
+                // 4. Esperar hasta que el texto cambie en el DOM
+                wait.until(driver -> !getText(Btntarget).equals(currentText));
                 break;
             case "Eliminar":
                 click(Btnremove);
@@ -108,10 +114,10 @@ public class cargaPage extends BasePage {
         return driver.findElement(deferredInput).getAttribute("value");
     }
 
-    public String getUpdatedNodeText() {
+    public String getUpdatedNodeText(String expectedVersion) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        WebElement newNode = wait.until(ExpectedConditions.visibilityOfElementLocated(Btntarget));
-        return newNode.getText();
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(Btntarget, expectedVersion));
+        return driver.findElement(Btntarget).getText();
     }
 
     public boolean isPreviousNodeStale() {
@@ -123,6 +129,8 @@ public class cargaPage extends BasePage {
             return wait.until(ExpectedConditions.stalenessOf(savedPreviousElement));
         } catch (org.openqa.selenium.StaleElementReferenceException e) {
             return true;
+        } catch (org.openqa.selenium.TimeoutException e) {
+            return false;
         }
     }
 
@@ -178,4 +186,5 @@ public class cargaPage extends BasePage {
     public long getLastElapsedTime() {
         return lastElapsedTime;
     }
+
 }

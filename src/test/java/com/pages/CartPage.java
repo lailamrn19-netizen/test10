@@ -26,11 +26,7 @@ public class CartPage extends BasePage {
     private final By confirmationMessage = By.xpath("//*[contains(text(),'Pedido confirmado') or contains(text(),'Gracias por su compra') or contains(@class,'success')]");
 
     public int getProductCount() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        List<WebElement> products = wait.until(
-                ExpectedConditions.presenceOfAllElementsLocatedBy(productsList)
-        );
-        return products.size();
+        return findElementsWithWait(productsList).size();
     }
 
     public boolean areProductsNamesAndPricesVisible() {
@@ -41,11 +37,9 @@ public class CartPage extends BasePage {
         }
 
         for (WebElement product : products) {
-            // Encontrar el título y el precio dentro del contexto de la tarjeta actual
             WebElement nameElement = product.findElement(productNameLocator);
             WebElement priceElement = product.findElement(productPriceLocator);
 
-            // Validar que ambos elementos estén visibles y no estén vacíos
             boolean isNameValid = nameElement.isDisplayed() && !nameElement.getText().trim().isEmpty();
             boolean isPriceValid = priceElement.isDisplayed() && !priceElement.getText().trim().isEmpty();
 
@@ -57,35 +51,19 @@ public class CartPage extends BasePage {
     }
 
     public void addProductToCart(String productName, int quantity) {
-        String xpathExpression = String.format(
+        By addToCartButton = By.xpath(String.format(
                 "//article[contains(@class, 'product-card')][.//h3[text()='%s']]//button",
                 productName
-        );
-
-        By addToCartButton = By.xpath(xpathExpression);
+        ));
 
         for (int i = 0; i < quantity; i++) {
-            WebElement buttonElement = driver.findElement(addToCartButton);
-
-            // Hace scroll al centro para evitar que el header bloquee el clic
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", buttonElement);
-
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            wait.until(ExpectedConditions.elementToBeClickable(buttonElement));
-
-            try {
-                buttonElement.click();
-            } catch (Exception e) {
-                // Clic fallback por JavaScript si se intercepta el clic nativo
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", buttonElement);
-            }
+            safeClick(addToCartButton);
         }
     }
 
+    // Método corregido: antes llamaba recursivamente a addProductToCart(productName, times) en un bucle
     public void addProductToCartMultipleTimes(String productName, int times) {
-        for (int i = 0; i < times; i++) {
-            addProductToCart(productName,times);
-        }
+        addProductToCart(productName, times);
     }
 
     public String getCartCounterText() {
@@ -95,64 +73,48 @@ public class CartPage extends BasePage {
     public String getCartTotalAmount() {
         return getText(cartTotal);
     }
+
     public void selectStoreCategoryCard(String categoryName) {
         By categoryCard = By.xpath("//nav[@aria-label='Módulos']//span[text()='" + categoryName + "']");
-        //  click(categoryCard);
-        WebElement element = driver.findElement(categoryCard);
-
-        // 1. Scroll para centrar la tarjeta en la pantalla
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
-
-        // 2. Intentar el clic normal; si falla por bloqueo, hacer el clic por JS
-        try {
-            click(categoryCard);
-        } catch (ElementClickInterceptedException e) {
-            js.executeScript("arguments[0].click();", element);
-        }
+        safeClick(categoryCard);
     }
+
     public void removeProductFromCart(String productName) {
-        String xpathExpression = String.format(
+        By removeButton = By.xpath(String.format(
                 "//div[@id='cart-items']//button[contains(@aria-label, 'Quitar %s') or contains(@title, 'Quitar %s')]",
                 productName, productName
-        );
-        click(By.xpath(xpathExpression));
+        ));
+        safeClick(removeButton);
     }
+
     public void enterShippingAddress(String addr) {
         type(addressInput, addr);
     }
+
     public void enterCardNumber(String cardNumber) {
         type(cardNumberInput, cardNumber);
     }
+
     public void clickConfirmOrder() {
-        click(confirmOrderButton);
+        safeClick(confirmOrderButton);
     }
+
     public String getErrorMessage() {
-        WebElement addressElement = driver.findElement(addressInput);
-        String html5AddressError = (String) ((JavascriptExecutor) driver)
-                .executeScript("return arguments[0].validationMessage;", addressElement);
+        // 1. Validar errores HTML5 de dirección y tarjeta
+        String addressError = getHtml5ValidationMessage(addressInput);
+        if (!addressError.isEmpty()) return addressError;
 
-        if (html5AddressError != null && !html5AddressError.isEmpty()) {
-            return html5AddressError;
-        }
+        String cardError = getHtml5ValidationMessage(cardNumberInput);
+        if (!cardError.isEmpty()) return cardError;
 
-        WebElement cardElement = driver.findElement(cardNumberInput);
-        String html5CardError = (String) ((JavascriptExecutor) driver)
-                .executeScript("return arguments[0].validationMessage;", cardElement);
-
-        if (html5CardError != null && !html5CardError.isEmpty()) {
-            return html5CardError;
-        }
-
+        // 2. Si no hay error HTML5, obtener el mensaje devuelto en el DOM
         return getText(errorMessage);
     }
+
     public boolean isOrderConfirmationDisplayed() {
         return isDisplayed(confirmationMessage);
     }
 
-    /**
-     * Retorna true si el botón de "Confirmar pedido" sigue estando visible.
-     */
     public boolean isConfirmButtonDisplayed() {
         return isDisplayed(confirmOrderButton);
     }

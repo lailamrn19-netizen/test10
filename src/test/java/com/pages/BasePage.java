@@ -4,9 +4,11 @@ import com.driver.DriverManager;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Set;
 
 public class BasePage {
@@ -65,7 +67,7 @@ public class BasePage {
     ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
   }
   public void scrollToBottom() {
-    ((JavascriptExecutor) driver).executeScript("window.scrollTo(10, document.body.scrollHeight);");
+    ((JavascriptExecutor) driver).executeScript("window.scrollTo(100, document.body.scrollHeight);");
   }
   public void scrollToLastDynamicElement() {
     // Localiza el último label u opción añadida en la lista
@@ -232,4 +234,76 @@ public class BasePage {
 
     ((JavascriptExecutor) driver).executeScript(script, source, target);
   }
+  /**
+   * Clic robusto: Intenta hacer clic nativo tras un scroll; si se intercepta, usa JavaScript.
+   */
+  public void safeClick(By locator) {
+    WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
+    scrollToElement(element);
+    try {
+      element.click();
+    } catch (ElementClickInterceptedException | StaleElementReferenceException e) {
+      ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+    }
+  }
+
+  public void safeClick(WebElement element) {
+    wait.until(ExpectedConditions.elementToBeClickable(element));
+    scrollToElement(element);
+    try {
+      element.click();
+    } catch (ElementClickInterceptedException | StaleElementReferenceException e) {
+      ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+    }
+  }
+  /**
+   * Obtiene el mensaje de validación nativo HTML5 de un input.
+   */
+  public String getHtml5ValidationMessage(By locator) {
+    try {
+      WebElement element = driver.findElement(locator);
+      String message = (String) ((JavascriptExecutor) driver)
+              .executeScript("return arguments[0].validationMessage;", element);
+      return message != null ? message.trim() : "";
+    } catch (Exception e) {
+      return "";
+    }
+  }
+
+  /**
+   * Retorna la lista de elementos localizados tras esperar su presencia en el DOM.
+   */
+  public List<WebElement> findElementsWithWait(By locator) {
+    return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
+  }
+  /**
+   * Espera a que un elemento contenga un texto específico y devuelve su contenido.
+   */
+  public String getTextWhenContains(By locator, String expectedText, int timeoutInSeconds) {
+    WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutInSeconds));
+    customWait.until(ExpectedConditions.textToBePresentInElementLocated(locator, expectedText));
+    return driver.findElement(locator).getText().trim();
+  }
+  public void selectByVisibleText(By locator, String text) {
+    WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+    new Select(element).selectByVisibleText(text);
+  }
+
+  public void typeIfPresent(By locator, String text) {
+    if (text == null || text.equalsIgnoreCase("N/A")) {
+      return; // No hace nada, deja el campo como está
+    }
+
+    WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+
+    if (text.equalsIgnoreCase("EMPTY") || text.equalsIgnoreCase("VACIO")) {
+      element.clear();
+      // Truco adicional por si `.clear()` no dispara el evento onChange en algunos inputs de React/Angular
+      element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
+    } else {
+      element.clear();
+      element.sendKeys(text);
+    }
+  }
+
 }
