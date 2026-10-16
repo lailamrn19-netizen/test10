@@ -1,41 +1,17 @@
 package com.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import static com.pages.Locators.*;
 
 import java.time.Duration;
 
-public class elementPage extends BasePage {
+public class ElementPage extends BasePage {
 
-    // Locadores - Controles Estándar y Dinámicos
-    private final By nativeCategorySelect = By.id("native-select");
-    private final By customRegionDropdownButton = By.id("custom-select-trigger");
-    private final By selectsStatusMessage = By.id("select-result");
-    private final By addDynamicOptionsButton = By.id("add-choice");
-    private final By dynamicStatusMessage = By.xpath("//*[contains(text(),'Controles dinámicos añadidos')]");
-
-    // Locadores - iFrame
-    private final By iframeLocator = By.tagName("iframe");
-    private final By iframeSubmitButton = By.xpath("//button[contains(normalize-space(),'Enviar desde iFrame')]");
-    private final By iframeInput = By.cssSelector("input");
-    private final By iframeNameInput = By.id("iframe-name");
-    private final By iframeResult = By.id("iframe-result");
-
-    // Locadores - Shadow DOM
-    private final By shadowHostLocator = By.id("shadow-component");
-
-    // Locadores - Modales
-    private final By btnModal = By.id("open-modal");
-    private final By btnFondo = By.id("behind-modal");
-    private final By btnGuardarCerrar = By.id("save-modal");
-    private final By modalHeader = By.id("demo-modal");
-    private final By inputModal = By.id("modal-input");
-    private final By txtResultadoGuardado = By.id("modal-result");
     /**
      * Método optimizado para manejar la acción de clic en diferentes botones
      * según su identificador o texto mediante un switch statement.
@@ -163,13 +139,6 @@ public class elementPage extends BasePage {
         String message = "";
 
         try {
-            // Inyectar CSS para corregir el desbordamiento y forzar el salto de línea a la izquierda
-            ((JavascriptExecutor) driver).executeScript(
-                    "var style = document.createElement('style');" +
-                            "style.innerHTML = 'body { word-break: break-word; overflow-x: hidden; text-align: left; } #iframe-result { word-wrap: break-word; text-align: left; }';" +
-                            "document.head.appendChild(style);"
-            );
-
             String html5Error = getHtml5ValidationMessage(iframeNameInput);
             if (!html5Error.isEmpty()) {
                 message = html5Error;

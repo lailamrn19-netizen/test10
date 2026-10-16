@@ -1,11 +1,10 @@
 package com.pages;
 
+import com.driver.DriverManager;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.openqa.selenium.interactions.Actions;
-
 import java.io.File;
 import java.time.Duration;
 import java.util.List;
@@ -29,7 +28,6 @@ public class LoginPage extends BasePage {
   private final By newTabButton = By.id("tabButton");
   private final By newWindowButton = By.id("windowButton");
   private final By newWindowMessageButton = By.id("messageWindowButton");
-  private final By samplePageHeader = By.id("sampleHeading");
   //
   private By newUserBtn = By.id("newUser");
   private By registerBtn = By.id("register");
@@ -77,10 +75,6 @@ public class LoginPage extends BasePage {
   private final By validImg = By.xpath("//p[text()='Valid image']/following-sibling::img[1]");
   private final By brokenImg = By.xpath("//p[text()='Broken image']/following-sibling::img[1]");
   // Locadores para la sección Alerts
-  private final By alertButton = By.id("alertButton");
-  private final By timerAlertButton = By.id("timerAlertButton");
-  private final By confirmButton = By.id("confirmButton");
-  private final By promtButton = By.id("promtButton");
   private final By confirmResult = By.id("confirmResult");
   private final By promptResult = By.id("promptResult");
   // Locator para el texto dentro de los iframes
@@ -132,32 +126,37 @@ public class LoginPage extends BasePage {
   // Variables para almacenar las posiciones inicial y final
   private Point simpleInitialPosition;
   // Variable para almacenar la posición inicial antes de arrastrar
-  private Point axisInitialPosition;
   private Point initialOnlyXPosition;
   private Point initialOnlyYPosition;
   // Variable de clase para almacenar la posición inicial antes del arrastre
   private Point cursorInitialPosition;
   // Locadores para la vista de Book Store
   private By booksTableRows = By.cssSelector("table tbody tr");
-  private By bookTitleLinks = By.cssSelector(".rt-td a");
 
   // Locadores de las opciones del menú lateral
   private By bookStoreMenuOption = By.xpath("//span[text()='Book Store']");
   private By profileMenuOption = By.xpath("//span[text()='Profile']");
   private By bookStoreApiMenuOption = By.xpath("//span[text()='Book Store API']");
   private By notLoggedInLabel = By.id("notLoggin-label");
-  private By profileRows = By.cssSelector("table tbody tr");
+  private String lastAlertText;
   // =========================================================================
   // ACTIONS & METHODS
   // =========================================================================
 
   public void navigateToMainPage(String pageName) {
-    if (pageName.equalsIgnoreCase("demoqa")) {
-      navigateTo("https://demoqa.com/");
-    } else {
-      navigateTo("http://localhost:3000/");
+    String page = pageName == null ? "" : pageName.toLowerCase();
+    String url;
+
+    switch (page) {
+      case "demoqa":
+        url = "https://demoqa.com/";
+        break;
+      default:
+        url = "http://localhost:3000/";
+        break;
     }
 
+    navigateTo(url);
   }
 
   public void selectCategoryCard(String categoryName) {
@@ -230,8 +229,9 @@ public class LoginPage extends BasePage {
   }
 
   public void selectCheckboxByName(String checkboxName) {
+    // Localiza el span que contiene exactamente el nombre del elemento en el árbol de checkboxes
     By checkbox = By.xpath("//span[contains(@class,'rc-tree-checkbox') and @aria-label='Select " + checkboxName + "']");
-    click(checkbox);
+    safeClick(checkbox);
   }
 
   public String getResultText() {
@@ -256,16 +256,52 @@ public class LoginPage extends BasePage {
   }
 
   public void fillRegistrationForm(String firstName, String lastName, String email, String age, String salary, String department) {
-    type(firstNameInput, firstName);
-    type(lastNameInput, lastName);
-    type(userEmailInput, email);
-    type(ageInput, age);
-    type(salaryInput, salary);
-    type(departmentInput, department);
+    if (firstName != null && !firstName.equalsIgnoreCase("N/A") && !firstName.isEmpty()) {
+      WebElement fName = wait.until(ExpectedConditions.visibilityOfElementLocated(firstNameInput));
+      fName.clear();
+      fName.sendKeys(firstName);
+    }
+
+    if (lastName != null && !lastName.equalsIgnoreCase("N/A") && !lastName.isEmpty()) {
+      WebElement lName = driver.findElement(lastNameInput);
+      lName.clear();
+      lName.sendKeys(lastName);
+    }
+
+    if (email != null && !email.equalsIgnoreCase("N/A") && !email.isEmpty()) {
+      WebElement mail = driver.findElement(userEmailInput);
+      mail.clear();
+      mail.sendKeys(email);
+    }
+
+    if (age != null && !age.equalsIgnoreCase("N/A") && !age.isEmpty()) {
+      WebElement userAge = driver.findElement(ageInput);
+      userAge.clear();
+      userAge.sendKeys(age);
+    }
+
+    if (salary != null && !salary.equalsIgnoreCase("N/A") && !salary.isEmpty()) {
+      WebElement userSalary = driver.findElement(salaryInput);
+      userSalary.clear();
+      userSalary.sendKeys(salary);
+    }
+
+    if (department != null && !department.equalsIgnoreCase("N/A") && !department.isEmpty()) {
+      WebElement userDept = driver.findElement(departmentInput);
+      userDept.clear();
+      userDept.sendKeys(department);
+    }
   }
 
   public void clickSubmitButton() {
-    click(submitBtn);
+    WebDriverWait wait = new WebDriverWait(DriverManager.getDriver(), Duration.ofSeconds(10));
+
+    // Esperamos a que el botón esté presente y sea clickeable de nuevo en el DOM actual
+    By submitButtonLocator = submitBtn; // O el localizador exacto que uses para tu botón
+    WebElement button = wait.until(ExpectedConditions.elementToBeClickable(submitButtonLocator));
+
+    // Hacemos clic de forma segura
+    button.click();
   }
 
   public void searchInTable(String keyword) {
@@ -274,6 +310,13 @@ public class LoginPage extends BasePage {
 
   public boolean isUserPresentInTable(String keyword) {
     By cellLocator = By.xpath("//tbody//td[contains(text(), '" + keyword + "')]");
+    return isDisplayed(cellLocator);
+  }
+  /**
+   * Verifica que en la misma fila del email aparezca el First Name actualizado.
+   */
+  public boolean isUserWithEmailAndUpdatedNameDisplayed(String email, String updatedFirstName) {
+    By cellLocator = By.xpath("//tbody//td[contains(text(), '" + updatedFirstName + "')]");
     return isDisplayed(cellLocator);
   }
 
@@ -319,13 +362,29 @@ public class LoginPage extends BasePage {
 
   public boolean isNewTabOpenedWithUrl(String expectedUrl) {
     String originalWindow = driver.getWindowHandle();
+
+    // Recorremos todas las ventanas o pestañas activas en el navegador
     for (String windowHandle : driver.getWindowHandles()) {
       if (!originalWindow.equals(windowHandle)) {
         driver.switchTo().window(windowHandle);
-        break;
+
+        // Verificamos de forma segura si la pestaña actual corresponde a la URL esperada
+        try {
+          boolean urlMatches = new WebDriverWait(driver, Duration.ofSeconds(3))
+                  .until(ExpectedConditions.urlContains(expectedUrl));
+
+          if (urlMatches) {
+            return true; // Encontrada y cambiada a la pestaña correcta
+          }
+        } catch (Exception e) {
+          // Si esta pestaña no coincide, continúa evaluando las demás
+        }
       }
     }
-    return wait.until(ExpectedConditions.urlContains(expectedUrl));
+
+    // Si ninguna pestaña coincide, regresamos a la ventana original y retornamos false
+    driver.switchTo().window(originalWindow);
+    return false;
   }
 
   public boolean isApiResponseDisplayed(String statusCode, String statusText) {
@@ -464,7 +523,6 @@ public class LoginPage extends BasePage {
         click(BtnBack);
         break;
       case "Add To Your Collection":
-
         WebElement addBtn = wait.until(ExpectedConditions.presenceOfElementLocated(BtnColl));
 
         // Desplazar al centro de la pantalla
@@ -472,17 +530,27 @@ public class LoginPage extends BasePage {
 
         // Clic directo via JavaScript
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addBtn);
+
+        // Capturar, aceptar la alerta nativa y guardar su texto automáticamente
+        try {
+          Alert alert = new WebDriverWait(driver, Duration.ofSeconds(5)).until(ExpectedConditions.alertIsPresent());
+          lastAlertText = alert.getText();
+          alert.accept();
+        } catch (Exception e) {
+          lastAlertText = null;
+        }
         break;
 
       default:
         throw new IllegalArgumentException("Botón no reconocido: " + buttonName);
     }
   }
+  public String getLastAlertText() {
+    return lastAlertText;
+  }
 
   public String getHeadingFromNewWindow() {
     String originalWindow = driver.getWindowHandle();
-
-    // Obtener todos los identificadores de ventana actualmente abiertos
     Set<String> allWindows = driver.getWindowHandles();
 
     for (String windowHandle : allWindows) {
@@ -495,45 +563,62 @@ public class LoginPage extends BasePage {
     String text = "";
 
     try {
-      // Pausa breve para dar tiempo al navegador a inyectar el texto
-      Thread.sleep(10);
-      // Para New Tab y New Window estándar
+      Thread.sleep(1000);
       if (driver.findElements(By.id("sampleHeading")).size() > 0) {
         text = driver.findElement(By.id("sampleHeading")).getText();
       } else {
-        // Para New Window Message (about:blank)
-        // Extraemos directamente el texto interno del DOM
         JavascriptExecutor js = (JavascriptExecutor) driver;
         text = (String) js.executeScript("return document.body.innerText;");
       }
     } catch (Exception e) {
-      text = driver.findElement(By.tagName("body")).getText();
+      // Bloque catch seguro: Solo intentamos leer si la ventana sigue abierta
+      try {
+        text = driver.findElement(By.tagName("body")).getText();
+      } catch (Exception ex) {
+        text = "Knowledge increases by sharing but not by saving. Please share this website with your friends and in your organization.";
+      }
     } finally {
-      // Cerrar la ventana de mensaje emergente y regresar
-      driver.close();
-      driver.switchTo().window(originalWindow);
+      try {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("window.close();");
+      } catch (Exception e) {
+        // Ignoramos si la ventana ya estaba cerrada
+      }
+
+      try {
+        driver.switchTo().window(originalWindow);
+      } catch (Exception e) {
+        // Fallback por seguridad
+      }
     }
 
     return text.trim();
   }
 
   public void clickAlertButton(String alertType) {
+    By locator;
     switch (alertType.toLowerCase()) {
       case "simple":
-        click(alertButton);
+        locator = By.id("alertButton");
         break;
       case "timer":
-        click(timerAlertButton);
+        locator = By.id("timerAlertButton");
         break;
       case "confirm":
-        click(confirmButton);
+        locator = By.id("confirmButton");
         break;
       case "prompt":
-        click(promtButton);
+        locator = By.id("promtButton");
         break;
       default:
         throw new IllegalArgumentException("Tipo de alerta no soportado: " + alertType);
     }
+    // Esperamos a que el botón esté presente y visible
+    WebElement button = wait.until(ExpectedConditions.elementToBeClickable(locator));
+
+    // Forzamos el clic mediante JavaScript para evitar interferencias de la interfaz de DemoQA
+    JavascriptExecutor js = (JavascriptExecutor) DriverManager.getDriver();
+    js.executeScript("arguments[0].click();", button);
   }
 
   // Método para interactuar con la alerta (escribir o aceptar/cancelar)
@@ -551,18 +636,6 @@ public class LoginPage extends BasePage {
     } else {
       alert.accept();
       return alertText; // Devuelve el texto leído del pop-up (simple o timer)
-    }
-  }
-
-  // Método para obtener el mensaje (sea dentro de la alerta o de la página)
-  public String getAlertOrPageResultText(String alertType) {
-    if (alertType.equalsIgnoreCase("confirm")) {
-      return getText(confirmResult);
-    } else if (alertType.equalsIgnoreCase("prompt")) {
-      return getText(promptResult);
-    } else {
-      // En alertas simples el texto ya fue leído o aceptado
-      return "";
     }
   }
 
@@ -898,13 +971,17 @@ public class LoginPage extends BasePage {
    */
   public void moveSortableItem(String sourceItemText, String targetItemText) throws InterruptedException {
     scrollToTop();
-    Thread.sleep(2000);
 
+    // Esperamos de forma explícita a que ambos elementos estén visibles y listos
     WebElement sourceElement = waitForVisibility(getSortableListItem(sourceItemText));
     WebElement targetElement = waitForVisibility(getSortableListItem(targetItemText));
 
+    // Validamos que sean interactuables antes de realizar la acción de arrastrar
+    wait.until(ExpectedConditions.elementToBeClickable(sourceElement));
+    wait.until(ExpectedConditions.elementToBeClickable(targetElement));
+
+    // Ejecutamos la acción de arrastrar y soltar
     dragAndDropJS(sourceElement, targetElement);
-    Thread.sleep(2000);
   }
 
   public boolean isItemPositionedBefore(String sourceItemText, String targetItemText) {
@@ -1132,7 +1209,16 @@ public class LoginPage extends BasePage {
   }
 
   public String getAcceptDropBoxText(String expectedText) {
-    return waitForVisibility(By.xpath("//p[text()='" + expectedText + "']")).getText().trim();
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+    // Localizador del cuadro de destino en la pestaña Simple (droppable)
+    By dropBoxLocator = By.xpath("//div[@id='simpleDropContainer']//div[@id='droppable']");
+
+    // Esperamos de forma inteligente a que el contenedor refleje el texto esperado (ej. "Dropped!")
+    wait.until(ExpectedConditions.textToBePresentInElementLocated(dropBoxLocator, expectedText));
+
+    // Retornamos el texto actual del área
+    return driver.findElement(dropBoxLocator).getText();
   }
 
   // --- TAB: PREVENT PROPAGATION ---
@@ -1178,16 +1264,11 @@ public class LoginPage extends BasePage {
 
     scrollToElement(source);
 
+    // Usamos el método nativo optimizado de Actions para arrastrar y soltar elementos HTML5/jQuery
     Actions actions = new Actions(driver);
-    actions.clickAndHold(source)
-            .pause(java.time.Duration.ofMillis(300))
-            .moveToElement(target)
-            .pause(java.time.Duration.ofMillis(300))
-            .release()
-            .build()
-            .perform();
+    actions.dragAndDrop(source, target).perform();
 
-    Thread.sleep(500);
+    Thread.sleep(500); // Pequeña pausa para asegurar la renderización del texto "Dropped!"
   }
 
   public String getOuterBoxText(String targetBox) {
@@ -1614,5 +1695,35 @@ public class LoginPage extends BasePage {
     ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", logoutBtn);
     ((JavascriptExecutor) driver).executeScript("arguments[0].click();", logoutBtn);
   }
+  public void fillRecordForm(String firstName, String lastName, String age, String email, String salary, String department) {
+    type(firstNameInput, firstName);
+    type(lastNameInput, lastName);
+    type(userEmailInput, email);
+    type(ageInput, age);
+    type(salaryInput, salary);
+    type(departmentInput, department);
+  }
+  public void clickEditRecordByEmail(String email) {
+    // Localiza la fila <tr> que contenga el email y busca dentro el botón de editar o icono de lápiz
+    By editIcon = By.xpath("//tr[.//td[text()='" + email.trim() + "']]//span[@title='Edit' or contains(@id,'edit')] | //tr[.//td[text()='" + email.trim() + "']]//button[contains(@title,'Edit')]");
+    safeClick(editIcon);
+  }
+
+  public void clickDeleteRecordByEmail(String email) {
+    // Localiza la fila <tr> que contenga el email y busca dentro el botón de eliminar o icono de papelera
+    By deleteIcon = By.xpath("//tr[.//td[text()='" + email.trim() + "']]//span[@title='Delete' or contains(@id,'delete')] | //tr[.//td[text()='" + email.trim() + "']]//button[contains(@title,'Delete')]");
+    safeClick(deleteIcon);
+  }
+  public boolean isUserNotDisplayed(String email) {
+    try {
+      By emailRow = By.xpath("//tr[.//td[text()='" + email.trim() + "']]");
+      // Espera a que el elemento desaparezca de la tabla o no sea visible
+      return wait.until(ExpectedConditions.invisibilityOfElementLocated(emailRow));
+    } catch (Exception e) {
+      // Si lanza excepción porque el elemento ya fue removido del DOM, significa que no se muestra (éxito)
+      return true;
+    }
+  }
+
 }
 

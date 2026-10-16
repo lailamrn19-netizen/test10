@@ -6,13 +6,13 @@ Feature: this test for Catálogo y carrito
   Background:
     Given the user navigates to the main page "carito"
     When the user selects the "Catálogo y carrito" card from the store main page
-
-  @scenario1
+  # --- Criterio 1: Como comprador, quiero ver los productos disponibles ---
+  @cart-catalog-display-validation
   Scenario: Verify that the catalog displays all four products with their names and prices
     Then the catalog should display 4 products
     And each product should have a visible name and price
-
-  @scenario2
+  # --- Criterio 2: añadirlos al carrito para preparar mi compra. ---
+  @cart-add-single-product-counter
   Scenario Outline: Adding a product increments the cart counter and updates the total
     And the user adds the product "<productName>" with Count "<quantity>" to the cart
     Then the cart counter should display "<expectedCount>"
@@ -23,7 +23,7 @@ Feature: this test for Catálogo y carrito
       | Auriculares Studio | 1        | 1             | 89,90 €       |
       | Mochila Urbana     | 1        | 1             | 64,00 €       |
 
-  @scenario3
+  @cart-add-multiple-quantity-same-product
   Scenario Outline: You can add the same product more than once
     And the user adds the product "<productName>" with Count "<quantity>" to the cart
     Then the cart counter should display "<expectedCount>"
@@ -34,7 +34,7 @@ Feature: this test for Catálogo y carrito
       | Mochila Urbana     | 4        | 4             | 256,00 €      |
       | Reloj Minimal      | 2        | 2             | 258,00 €      |
   # --- Criterio 3: Quitar productos del carrito ---
-  @remove_product
+  @cart-remove-product-update-total
   Scenario Outline: Removing an item from the cart updates the quantity and the total amount
     And the user adds the product "<productName>" with Count "<quantity>" to the cart
     And the user removes the product "<productName>" from the cart
@@ -47,7 +47,7 @@ Feature: this test for Catálogo y carrito
       | Auriculares Studio | 1        | 0             | 0,00 €        |
 
   # --- Criterio 4: Validaciones al confirmar pedido ---
-  @checkout_validation
+  @cart-checkout-invalid-data-validation
   Scenario Outline: Prevent the purchase if the cart is empty or the shipping and payment information is invalid
     And the user adds the product "<productName>" with Count "<quantity>" to the cart
     And the user enters the shipping address "<address>"
@@ -63,7 +63,7 @@ Feature: this test for Catálogo y carrito
       | Mochila Urbana     | 1        | Calle Mayor 123     | 1234             | La tarjeta debe tener 16 dígitos válidos.            |
 
   # --- Criterio 5: Confirmación de compra exitosa ---
-  @checkout_success
+  @cart-checkout-successful-order
   Scenario: With a valid card, the order is confirmed and the shopping cart is emptied
     And the user adds the product "Auriculares Studio" with Count "1" to the cart
     And the user enters the shipping address "Avenida de la Constitución 15"
@@ -72,8 +72,8 @@ Feature: this test for Catálogo y carrito
     Then a confirmation message should be displayed
     And the cart counter should display "0"
     And the total cart amount should be "0,00 €"
-  # --- Criterio 6:Probar si puede anadir dos productos differentes en mismo tiempo  ---
-  @checkout_multiple_items
+  # --- Criterio 6: Probar si puede anadir dos productos differentes en mismo tiempo ---
+  @cart-add-multiple-different-products
   Scenario Outline: Add two products to the cart and verify total amount
     And the user adds the product "<firstProduct>" with Count "1" to the cart
     And the user adds the product "<secondProduct>" with Count "1" to the cart

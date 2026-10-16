@@ -1,29 +1,11 @@
 package com.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.time.Duration;
 import java.util.List;
+import static com.pages.Locators.*;
 
 public class CartPage extends BasePage {
-    // Locadores del catálogo y carrito
-    private final By productsList = By.xpath("//div[@id='product-grid']/article"); // Ajusta la clase según el DOM de tu app
-    private final By productNameLocator = By.xpath(".//h3");
-    private final By productPriceLocator = By.xpath(".//div[@class='product-bottom']/strong");
-    private final By cartBadge = By.id("cart-count");
-    private final By cartTotal = By.id("cart-total");
-    // Campos de entrada y botón de confirmación
-    private final By addressInput = By.id("checkout-address");
-    private final By cardNumberInput = By.id("checkout-card");
-    private final By confirmOrderButton = By.xpath("//button[contains(@class,'button-primary') and text() ='Confirmar pedido']");
-    // Mensajes de validación y confirmación
-    private final By errorMessage = By.xpath("//*[contains(@class,'error') or contains(@class,'alert-danger')]");
-    private final By confirmationMessage = By.xpath("//*[contains(text(),'Pedido confirmado') or contains(text(),'Gracias por su compra') or contains(@class,'success')]");
 
     public int getProductCount() {
         return findElementsWithWait(productsList).size();

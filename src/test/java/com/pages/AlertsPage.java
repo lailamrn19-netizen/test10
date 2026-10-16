@@ -8,38 +8,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.io.File;
-
+import static com.pages.Locators.*;
 
 public class AlertsPage extends BasePage {
-
-    // Locators para Alerts & Windows
-    private final By btnAlert = By.id("show-alert");
-    private final By btnConfi = By.id("show-confirm");
-    private final By btnProm = By.id("show-prompt");
-    private final By btnNewPes = By.id("open-window");
-    private final By btnconfres = By.xpath("//button[text()='Confirmar reserva']");
-    private final By resultText = By.id("alert-result");
-
-    // Locators de Formulario de Reserva
-    private final By selectExperience = By.id("booking-activity");
-    private final By inputDate = By.id("booking-date");
-    private final By inputEmail = By.id("booking-email");
-    private final By inputTickets = By.id("booking-tickets");
-    private final By statusMessage = By.id("booking-result");
-    private final By btnReset = By.xpath("//button[text()='Restablecer']");
-
-    // Locators para Descargas y Reportes
-    private final String downloadFolderPath = System.getProperty("user.home") + "/Downloads";
-    private final By selectFormat = By.id("report-format");
-    private final By btnDownload = By.id("download-report");
-    private final By downloadNotification = By.id("download-result");
-
-    // Locators para Carga de Archivos
-    private final By fileInput = By.id("upload-file");
-    private final By btnUpload = By.xpath("//button[contains(text(),'Subir archivo')]");
-    private final By responseContainer = By.id("upload-result");
-
-    private String mainTabHandle;
 
     public void clickButton(String buttonName) {
         switch (buttonName.trim().toLowerCase()) {
@@ -195,7 +166,10 @@ public class AlertsPage extends BasePage {
         File file = new File(System.getProperty("java.io.tmpdir") + File.separator + fileName);
         try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
             raf.setLength(sizeInMB * 1024 * 1024);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            // Mostramos el error en la consola para depurar adecuadamente en lugar de ignorarlo
+            e.printStackTrace();
+            throw new RuntimeException("No se pudo crear el archivo temporal: " + fileName, e);
         }
         return file.getAbsolutePath();
     }

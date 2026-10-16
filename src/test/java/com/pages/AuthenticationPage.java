@@ -1,22 +1,9 @@
 package com.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import static com.pages.Locators.*;
 
-import java.time.Duration;
-
-public class authenticationPage extends BasePage{
-
-    private final By userNameInput = By.id("login-username");
-    private final By passwordInput = By.id("login-password");
-    private final By ButtonEnter = By.xpath("//button[contains(@class,'button-primary') and text() ='Entrar']");
-    // Mensajes de validación y confirmación
-    private final By errorMessage = By.id("login-result");
-    private final By loginResult = By.id("login-result");
+public class AuthenticationPage extends BasePage{
 
     public void selectStoreCategoryCard(String categoryName) {
         By categoryCard = By.xpath("//nav[@aria-label='Módulos']//span[text()='" + categoryName + "']");

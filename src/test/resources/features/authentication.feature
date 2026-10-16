@@ -4,8 +4,8 @@ Feature: Acceso de usuario y autenticación
     Given the user navigates to the main page "Autenticación"
     When the user selects the "Autenticación" from the store main page
 
-  # Criterio 1: Los campos vacíos muestran un error inmediato
-  @empty_fields
+ # Criterio 1: Los campos vacíos muestran un error inmediato
+  @auth-empty-fields-validation
   Scenario Outline: Logging in with empty fields results in an immediate error
     And the user enters username "<username>" and password "<password>"
     And the user clicks the login button
@@ -18,14 +18,14 @@ Feature: Acceso de usuario y autenticación
       |          | password123 | Completa usuario y contraseña.        |
 
   # Criterio 2: admin / password123 permite el acceso tras dos segundos
-  @successful_login
+  @auth-successful-login
   Scenario: Logging in with valid credentials grants access
     And the user enters username "admin" and password "password123"
     And the user clicks the login button
     Then a success message "Sesión iniciada correctamente." should be displayed
 
   # Criterio 3: locked devuelve usuario bloqueado y las credenciales erróneas muestran un error
-  @invalid_login
+  @auth-invalid-credentials-validation
   Scenario Outline: Logging in with locked or incorrect credentials results in an error
     And the user enters username "<username>" and password "<password>"
     And the user clicks the login button

@@ -1,23 +1,14 @@
 package com.steps;
 
-import com.pages.BasePage;
-import com.pages.cargaPage;
-import com.pages.elementPage;
-import io.cucumber.java.PendingException;
+import com.pages.ElementPage;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
-public class elementSteps {
-    private final elementPage elementPage = new elementPage();
-    @Given("the user navigates to the complex elements section")
-    public void theUserNavigatesToTheComplexElementsSection() {
-        // Lógica de navegación a la sección de elementos complejos
-    }
-
+public class ElementSteps {
+    private final ElementPage elementPage = new ElementPage();
     @When("the user selects the category {string} from the native select")
     public void theUserSelectsTheCategoryFromTheNativeSelect(String category) {
         elementPage.selectNativeCategory(category);
@@ -136,8 +127,11 @@ public class elementSteps {
                 "El mensaje del resultado guardado no coincide.");
     }
     @Then("the action result message should display {string}")
-    public void theActionResultMessageShouldNotDisplay(String expectedMessage) {
-        String actualMessage = elementPage.getBackgroundActionResultMessage();
-        Assert.assertNotEquals(actualMessage, expectedMessage, "El botón de fondo se pudo pulsar a pesar de tener el modal abierto.");
+    public void theActionResultMessageShouldDisplay(String expectedMessage) {
+        String actualMessage = elementPage.getBackgroundActionResultMessage().trim();
+
+        // Validamos que el mensaje mostrado coincida exactamente con el esperado
+        Assert.assertEquals(actualMessage, expectedMessage,
+                "El mensaje del resultado de la acción no coincide con el esperado.");
     }
 }

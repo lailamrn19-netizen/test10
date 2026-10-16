@@ -1,15 +1,13 @@
 package com.steps;
 
-import com.pages.cargaPage;
-import io.cucumber.java.PendingException;
+import com.pages.CargaPage;
 import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.testng.Assert;
 
-public class cargaSteps {
-    private final cargaPage cargaPage =  new cargaPage();
+public class CargaSteps {
+    private final CargaPage cargaPage =  new CargaPage();
     private long startTime;
     private long elapsedTime;
 

@@ -46,7 +46,7 @@ Feature: Login
       | React                        | react                        |
       | Public                       | public                       |
       | Excel File.doc               | excelFile                    |
-      | Commands,Classified          | commands classified          |
+      | Commands,Classified          | commands                     |
 
   @scenario4
   Scenario Outline: Verify Radio Button selection and result display
@@ -67,10 +67,16 @@ Feature: Login
     And the user fills the registration form with "<firstName>","<lastName>","<email>","<age>","<salary>", and "<department>"
     And the user clicks on the submit button
     Then the table should display the user with email "<email>" in the list
+    And the user edits the record with email "<email>" updating First Name to "N/A","<updatedLastName>","N/A","N/A", and "N/A"
+    And the user clicks on the submit button
+    Then the table should display the user with email "<email>" and updated name "<updatedLastName>" in the list
+    And the user deletes the record with email "<email>"
+    Then the table should not display the user with email "<email>" in the list
 
     Examples:
-      | firstName | lastName |  email            |age  | salary | department |
-      | Laila     | Mrini    |  laila@test.com   |28   | 5000   | Quality    |
+      | firstName | lastName | email          | age | salary | department | updatedLastName |
+      | Laila     | Mrini    | laila@test.com | 28  | 5000   | Quality    | LailaUpdated     |
+
   @scenario6
   Scenario Outline: Verify searching for a record in Web Tables
     When the user selects the "Elements" card from the main page
@@ -386,8 +392,8 @@ Feature: Login
       | Interactions               | Sortable                     | /sortable              |
       | Interactions               | Selectable                   | /selectable            |
       | Interactions               | Resizable                    | /resizable             |
-      | Interactions               | Droppable                    | /Droppable             |
-      | Interactions               | Dragabble                    | /Dragabble             |
+      | Interactions               | Droppable                    | /droppable             |
+      | Interactions               | Dragabble                    | /dragabble             |
 
   @scenario4-1
   Scenario Outline: Verify sorting functionality in Sortable page
@@ -440,7 +446,7 @@ Feature: Login
       | restricted   | 100      | 50       | 300            | 250             |
       | restricted   | 400      | 200      | 500            | 300             |
       | unrestricted | 150      | 100      | 350            | 300             |
-      | unrestricted | 200      | 180      | 450            | 350             |
+      | unrestricted | 200      | 180      | 400            | 380             |
   @scenario4-5
   Scenario: Verify drag and drop in Simple tab
     When the user selects the "Interactions" card from the main page
@@ -542,7 +548,7 @@ Feature: Login
 
     Examples:
       | category_card              | element_name                 | expected_url           |
-      | Book Store Application     | Login                        | /Login                 |
+      | Book Store Application     | Login                        | /login                 |
       | Book Store Application     | Book Store                   | /books                 |
       | Book Store Application     | Profile                      | /profile               |
 

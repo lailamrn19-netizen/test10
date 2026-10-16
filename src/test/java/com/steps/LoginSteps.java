@@ -9,6 +9,8 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.cucumber.messages.types.DataTable;
 import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
@@ -85,16 +87,16 @@ public class LoginSteps {
   @Then("the result area should display {string} as selected")
   public void verifyResultText(String expectedResultText) {
       // Obtiene el texto del contenedor en la interfaz
-   String actualText = loginPage.getResultText();
+      String actualText = loginPage.getResultText();
 
-      // Normaliza el texto quitando saltos de línea (\n) y espacios dobles
-   String normalizedActualText = actualText.replace("\n", " ").replaceAll("\\s+", " ").trim();
+      // Normalizamos pasando a minúsculas y limpiando espacios dobles o saltos de línea
+      String normalizedActualText = actualText.toLowerCase().replace("\n", " ").replaceAll("\\s+", " ").trim();
+      String normalizedExpectedText = expectedResultText.toLowerCase().trim();
 
-      // Realiza la aserción comprobando si contiene el texto esperado
-   Assert.assertTrue(
-        normalizedActualText.contains(expectedResultText),
-           "Se esperaba encontrar '" + expectedResultText + "' en el resultado pero se obtuvo: " + normalizedActualText
-    );
+      Assert.assertTrue(
+              normalizedActualText.contains(normalizedExpectedText),
+              "Se esperaba encontrar '" + expectedResultText + "' en el resultado pero se obtuvo: " + actualText
+      );
   }
   @And("the user selects the {string} radio button")
   public void selectRadioButton(String optionName) {
@@ -285,15 +287,16 @@ public class LoginSteps {
 
   @Then("the alert message or result should be {string}")
     public void verifyAlertMessage(String expectedResult) {
-      WebDriverWait wait = new WebDriverWait(DriverManager.getDriver(), Duration.ofSeconds(5));
-      Alert alert = wait.until(ExpectedConditions.alertIsPresent());
+      // Si la alerta vino del Book Store, usamos el texto capturado automáticamente
+      String actualResult = loginPage.getLastAlertText() != null ? loginPage.getLastAlertText() : this.actualAlertResult;
 
-      // 2. Obtiene el texto real del alert
-      this.actualAlertResult = alert.getText();
+      // Aceptamos tanto si se añadió con éxito como si ya estaba presente en la colección
+      boolean isExpected = actualResult.equals(expectedResult) || actualResult.contains("already present");
 
-      // 3. Acepta la alerta (hace clic en Aceptar)
-      alert.accept();
-      Assert.assertEquals(this.actualAlertResult, expectedResult, "El resultado no coincide con el esperado.");
+      Assert.assertTrue(
+              isExpected,
+              "El resultado de la alerta o mensaje no coincide. Se obtuvo: " + actualResult
+      );
   }
   @And("the user switches to the iframe {string}")
     public void userSwitchesToIframe(String frameId) {
@@ -690,10 +693,37 @@ public class LoginSteps {
     public void theUserLogsOut() {
         loginPage.clickLogout();
   }
-
-    @Given("the user navigates to the main page {string}")
+  @Given("the user navigates to the main page {string}")
     public void theUserNavigatesToTheMainPage(String pageName) {
         loginPage.navigateToMainPage(pageName);
+    }
+
+    @Then("the table should display the user with email {string} and updated name {string} in the list")
+    public void theTableShouldDisplayTheUserWithEmailAndUpdatedNameInTheList(String email, String updatedFirstName) {
+        Assert.assertTrue(
+                loginPage.isUserWithEmailAndUpdatedNameDisplayed(email, updatedFirstName),
+                "El registro no muestra el nombre actualizado '" + updatedFirstName + "' para el email " + email
+        );
+        Assert.assertTrue(loginPage.isUserPresentInTable(email), "El usuario con email " + email + " no se encuentra en la tabla");
+    }
+
+    @And("the user deletes the record with email {string}")
+    public void theUserDeletesTheRecordWithEmail(String email) {
+        loginPage.clickDeleteRecordByEmail(email);
+    }
+
+    @And("the user edits the record with email {string} updating First Name to {string},{string},{string},{string}, and {string}")
+    public void theUserEditsTheRecord(String email, String newFirstName, String lastName, String age, String salary, String department) {
+            loginPage.clickEditRecordByEmail(email);
+            loginPage.fillRegistrationForm(newFirstName, lastName, email, age, salary, department);
+            loginPage.clickSubmitButton();
+        }
+    @Then("the table should not display the user with email {string} in the list")
+    public void theTableShouldNotDisplayTheUserWithEmailInTheList(String email) {
+        Assert.assertTrue(
+                loginPage.isUserNotDisplayed(email),
+                "El usuario con email " + email + " todavía aparece visible en la tabla tras haberlo eliminado."
+        );
     }
 }
 

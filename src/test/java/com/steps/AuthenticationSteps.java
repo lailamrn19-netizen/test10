@@ -1,13 +1,13 @@
 package com.steps;
 
-import com.pages.authenticationPage;
+import com.pages.AuthenticationPage;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.testng.Assert;
 
-public class authenticationSteps {
-    private final authenticationPage authenticationPage = new authenticationPage();
+public class AuthenticationSteps {
+    private final AuthenticationPage authenticationPage = new AuthenticationPage();
     @When("the user selects the {string} from the store main page")
     public void selectStoreCategoryCard(String categoryName) {
         authenticationPage.selectStoreCategoryCard(categoryName);

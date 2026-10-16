@@ -1,37 +1,16 @@
 package com.pages;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import static com.pages.Locators.*;
 
 import java.time.Duration;
 
-public class cargaPage extends BasePage {
-    // Locadores extraídos del DOM real de la app
-    private final By loadButton = By.id("load-element");
-    private final By loadTargetContainer = By.id("load-target");
-    private final By loadedDynamicButton = By.xpath("//div[@id='load-target']//button[contains(@id,'loaded-')]");
-
-    // Locadores basados en los elementos del ejercicio
-    private final By inputField = By.xpath("//input[@type='text' or contains(@placeholder,'escribir')]");
-
-    // Locadores interfaz "Campo diferido" y manipulación DOM
-    private final By enableFieldButton = By.id("enable-field");
-    private final By deferredInput = By.id("delayed-input");
-    private final By Btnremplazar = By.id("replace-element");
-    private final By Btnremove = By.id("remove-element");
-    private final By Btntarget = By.xpath("//p[@class='stale-target']");
-
+public class CargaPage extends BasePage {
     private WebElement savedPreviousElement;
-
-    // Locadores tarjeta "04 / API HTTP - Latencia y errores"
-    private final By delayInput = By.id("simulate-delay");
-    private final By httpStatusSelect = By.id("simulate-status");
-    private final By sendRequestButton = By.xpath("//button[contains(@class,'button-secondary') and text()='Enviar petición']");
-    private final By responseStatusResult = By.id("simulate-result");
 
     private long lastElapsedTime = 0;
 
@@ -75,7 +54,11 @@ public class cargaPage extends BasePage {
                 click(enableFieldButton);
                 break;
             case "Reemplazar":
-                scrollToLastDynamicElement();
+                try {
+                    scrollToLastDynamicElement();
+                } catch (Exception e) {
+                    System.out.println("El elemento dinámico para el scroll no está disponible: " + e.getMessage());
+                }
                 scrollToBottom();
                 // 1. Guardar la referencia del WebElement actual para la aserción de Staleness
                 this.savedPreviousElement = driver.findElement(Btntarget);
@@ -87,7 +70,7 @@ public class cargaPage extends BasePage {
                 safeClick(Btnremplazar);
 
                 // 4. Esperar hasta que el texto cambie en el DOM
-                wait.until(driver -> !getText(Btntarget).equals(currentText));
+                wait.until(driverInstance -> !getText(Btntarget).equals(currentText));
                 break;
             case "Eliminar":
                 click(Btnremove);
@@ -135,8 +118,14 @@ public class cargaPage extends BasePage {
     }
 
     public boolean isNodeRemoved() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        return wait.until(ExpectedConditions.invisibilityOfElementLocated(Btntarget));
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+            // Espera a que la lista de elementos en el DOM que coinciden con el localizador sea exactamente 0
+            return wait.until(ExpectedConditions.numberOfElementsToBe(Btntarget, 0)).isEmpty();
+        } catch (TimeoutException e) {
+            // Si pasan los 5 segundos y el elemento sigue presente en el DOM, retorna false
+            return false;
+        }
     }
 
     public void setDelay(String delayMs) {

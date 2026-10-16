@@ -3,8 +3,9 @@ Feature: Native Browser Dialogs - Alert, Confirm, and Prompt
   Background:
     Given the user navigates to the main page "Alertas y ventanas"
     When the user selects the "Alertas y ventanas" from the store main page
-  # Criterio 1:Como visitante, quiero responder a diálogos del navegador para confirmar o cancelar acciones.
-  @NativeDialogs
+
+  # Criterio 1: Como visitante, quiero responder a diálogos del navegador para confirmar o cancelar acciones.
+  @alerts-native-dialogs-validation
   Scenario Outline: Validate actions and messages in the browser's native dialogs
     And the user click on the button "<button_name>"
     And the user interacts with the dialog using action "<action>" and input "<input_text>"
@@ -16,8 +17,8 @@ Feature: Native Browser Dialogs - Alert, Confirm, and Prompt
       | Abrir confirm | accept  | N/A        | Confirmado.      |
       | Abrir confirm | dismiss | N/A        | Cancelado.       |
       | Abrir prompt  | accept  | Laila      | Hola, Laila      |
-   # Criterio 2:Como visitante, quiero abrir una reserva en otra pestaña sin perder la página principal.
-  @NewTab
+  # Criterio 2: Como visitante, quiero abrir una reserva en otra pestaña sin perder la página principal.
+  @alerts-new-tab-reservation
   Scenario Outline: Validate opening new tab and performing reservation flow
     And the user click on the button "Abrir nueva pestaña"
     Then a new tab should open with the path "/window-demo"
@@ -31,7 +32,7 @@ Feature: Native Browser Dialogs - Alert, Confirm, and Prompt
       | experience             | date       | email                 | tickets | expected_message                                                                              |
       | Taller creativo · 25 € | 15/10/2026 | lailamrn19@gmail.com  | 3       | Reserva confirmada: 3 entrada(s) para 2026-10-15. Confirmación enviada a lailamrn19@gmail.com.|
       | EMPTY                  | EMPTY      | EMPTY                 | EMPTY   | Completa todos los campos con datos válidos.                                                  |
-  @NewTab-buttonRestablecer
+  @alerts-new-tab-form-reset
   Scenario Outline: Confirm opening a new tab and performing a reset
     And the user click on the button "Abrir nueva pestaña"
     Then a new tab should open with the path "/window-demo"
@@ -43,8 +44,8 @@ Feature: Native Browser Dialogs - Alert, Confirm, and Prompt
       | experience             | date       | email                 | tickets |
       | Taller creativo · 25 € | 15/10/2026 | lailamrn19@gmail.com  | 3       |
 
-  # Criterio 3:Como usuario, quiero descargar un reporte para consultarlo fuera del navegador.
-  @DownloadReport
+  # Criterio 3: Como usuario, quiero descargar un reporte para consultarlo fuera del navegador.
+  @alerts-download-report-formats
   Scenario Outline: Validate reports downloaded in different formats
     And the user requests to download the report in "<format>" format
     Then the downloaded file name should be "<file_name>"
@@ -55,8 +56,8 @@ Feature: Native Browser Dialogs - Alert, Confirm, and Prompt
       | format | file_name      | expected_content         |
       | TXT    | reporte-qa.txt | QA-001                   |
       | CSV    | reporte-qa.csv | header and data row      |
-  # Criterio 4:Como usuario, quiero subir un archivo para comprobar que el servidor lo recibe.
-  @FileUpload
+  # Criterio 4: Como usuario, quiero subir un archivo para comprobar que el servidor lo recibe.
+  @alerts-file-upload-validation
   Scenario Outline: Validate file upload behavior with different criteria
     And the user uploads a file named "<fileName>" with size "<fileSize>"
     Then the response status should be "<expectedResult>"
